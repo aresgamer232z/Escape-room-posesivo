@@ -1,0 +1,102 @@
+<!DOCTYPE html><html lang="en">\>
+<head>
+  <meta charset="UTF-8">
+  <title>Escape Room Posesivo - Demo</title>
+  <style>
+    body { margin: 0; background: #222; color: white; font-family: Arial, sans-serif; }
+    canvas { display: block; margin: auto; background: #444; }
+    #ui {
+      position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+      text-align: center;
+    }
+    #question { font-size: 20px; margin-bottom: 10px; }
+    #answer { padding: 5px; font-size: 16px; }
+    #submit { padding: 5px 10px; font-size: 16px; margin-left: 5px; }
+    #timer, #score { font-size: 18px; margin-top: 5px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
+</head>
+<body>
+  <div id="ui">
+    <div id="question">This is ___ bike (David)</div>
+    <input type="text" id="answer" placeholder="Tu respuesta...">
+    <button id="submit">Enviar</button>
+    <div id="timer">Tiempo: 300s</div>
+    <div id="score">Puntos: 0</div>
+  </div>  <script>
+    let score = 0;
+    let timeLeft = 300; // 5 minutos
+    let timerInterval;
+
+    // Phaser config
+    const config = {
+      type: Phaser.AUTO,
+      width: 800,
+      height: 600,
+      physics: { default: 'arcade', arcade: { debug: false } },
+      scene: { preload, create, update }
+    };
+
+    let player, cursors, door, questionActive = true;
+
+    const game = new Phaser.Game(config);
+
+    function preload() {
+      this.load.image('player', 'https://labs.phaser.io/assets/sprites/phaser-dude.png');
+      this.load.image('door', 'https://labs.phaser.io/assets/sprites/platform.png');
+    }
+
+    function create() {
+      player = this.physics.add.sprite(100, 300, 'player').setScale(1.5);
+      door = this.physics.add.staticImage(700, 300, 'door').setScale(0.5, 2);
+
+      cursors = this.input.keyboard.createCursorKeys();
+
+      this.physics.add.overlap(player, door, tryUnlock, null, this);
+
+      // Timer
+      timerInterval = setInterval(() => {
+        if (timeLeft > 0) {
+          timeLeft--;
+          document.getElementById('timer').innerText = 'Tiempo: ' + timeLeft + 's';
+        } else {
+          clearInterval(timerInterval);
+          alert('⏳ ¡Se acabó el tiempo!');
+          game.destroy(true);
+        }
+      }, 1000);
+
+      document.getElementById('submit').addEventListener('click', checkAnswer);
+    }
+
+    function update() {
+      if (!player) return;
+
+      player.setVelocity(0);
+      if (cursors.left.isDown) player.setVelocityX(-200);
+      if (cursors.right.isDown) player.setVelocityX(200);
+      if (cursors.up.isDown) player.setVelocityY(-200);
+      if (cursors.down.isDown) player.setVelocityY(200);
+    }
+
+    function tryUnlock() {
+      if (!questionActive) {
+        alert('🚪 Puerta abierta, ¡pasaste el nivel!');
+        clearInterval(timerInterval);
+        game.destroy(true);
+      }
+    }
+
+    function checkAnswer() {
+      const ans = document.getElementById('answer').value.trim();
+      if (ans.toLowerCase() === "david's") {
+        score += 10;
+        document.getElementById('score').innerText = 'Puntos: ' + score;
+        questionActive = false;
+        document.getElementById('question').innerText = '✅ Correcto, acércate a la puerta';
+      } else {
+        document.getElementById('question').innerText = '❌ Incorrecto, intenta de nuevo';
+      }
+    }
+  </script></body>
+</html>
