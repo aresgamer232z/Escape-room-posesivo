@@ -1,112 +1,333 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Juego Demo Pixel</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: #222;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      font-family: 'Press Start 2P', cursive;
-      color: white;
-    }
-
-    #game {
-      position: relative;
-      width: 640px;
-      height: 480px;
-      background: url('https://i.ibb.co/f4qNMQC/floor.png') repeat; /* piso de madera */
-      border: 6px solid #654321;
-      box-shadow: 0 0 20px rgba(0,0,0,0.8);
-    }
-
-    /* Personaje */
-    #player {
-      position: absolute;
-      width: 32px;
-      height: 32px;
-      background: url('https://i.ibb.co/F6bKjz1/character.png') no-repeat;
-      background-size: cover;
-      left: 50px;
-      top: 200px;
-    }
-
-    /* Puerta */
-    #door {
-      position: absolute;
-      width: 64px;
-      height: 64px;
-      background: url('https://i.ibb.co/bzYPV0k/door.png') no-repeat;
-      background-size: cover;
-      right: 50px;
-      top: 200px;
-    }
-
-    /* UI */
-    #hud {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.6);
-      padding: 8px 12px;
-      border: 2px solid #fff;
-      border-radius: 6px;
-    }
-
-    input {
-      font-family: inherit;
-      font-size: 12px;
-      padding: 4px;
-    }
-
-    button {
-      font-family: inherit;
-      font-size: 12px;
-      padding: 4px 6px;
-      cursor: pointer;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Escape Room — Saxon Possessive</title>
+<style>
+  :root{
+    --bg:#0f172a;--panel:#111827;--ink:#e5e7eb;--muted:#94a3b8;--accent:#22d3ee;--ok:#22c55e;--bad:#ef4444;--warn:#f59e0b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+       background:linear-gradient(145deg,#0b1225,#0f172a);color:var(--ink);min-height:100vh;display:flex;align-items:center;justify-content:center}
+  .app{width:min(1000px,92vw);padding:24px}
+  .card{background:rgba(17,24,39,.85);backdrop-filter: blur(6px);border:1px solid #1f2937;border-radius:16px;padding:22px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  h1{margin:0 0 8px;font-size:clamp(20px,4vw,32px)}
+  p.lead{margin:6px 0 16px;color:var(--muted)}
+  .row{display:grid;gap:14px}
+  .row.cols-2{grid-template-columns:1fr 1fr}
+  label{font-size:14px;color:var(--muted)}
+  input[type=text],input[type=number]{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #334155;background:#0b1220;color:var(--ink)}
+  button{cursor:pointer;border:0;border-radius:12px;padding:12px 16px;font-weight:700}
+  .btn{background:var(--accent);color:#031016}
+  .btn.ghost{background:#1f2937;color:var(--ink);border:1px solid #334155}
+  .hud{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+  .tag{background:#0b1220;border:1px solid #334155;color:var(--muted);padding:6px 10px;border-radius:999px;font-size:13px}
+  .tag strong{color:var(--ink)}
+  .bar{height:10px;background:#0b1220;border:1px solid #334155;border-radius:999px;overflow:hidden}
+  .bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#60a5fa);width:0%}
+  .qbox{margin:12px 0;padding:16px;border:1px dashed #374151;border-radius:12px;background:#0b1220}
+  .prompt{font-size:20px}
+  .ghost-text{font-size:13px;color:var(--muted)}
+  .feedback{min-height:22px;margin-top:6px}
+  .ok{color:var(--ok)} .bad{color:var(--bad)} .warn{color:var(--warn)}
+  .grid{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+  .flex{display:flex;gap:10px;flex-wrap:wrap}
+  .small{font-size:12px;color:var(--muted)}
+  .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;background:#0b1220;border:1px solid #334155;border-radius:6px;padding:2px 6px}
+  .hidden{display:none}
+  .center{text-align:center}
+</style>
 </head>
 <body>
-  <div id="game">
-    <div id="hud">
-      <p>Esta es ___ bicicleta (David)</p>
-      <input type="text" id="answer" placeholder="Tu respuesta...">
-      <button onclick="checkAnswer()">Enviar</button>
-      <p id="score">Tiempo: 300s | Puntos: 0</p>
+<div class="app">
+  <div class="card" id="setup">
+    <h1>Escape Room — Saxon Possessive</h1>
+    <p class="lead">Estás “encerrado” en la Biblioteca del Inglés. Para salir, resuelve retos convirtiendo frases con <em>of</em> al <strong>posesivo sajón</strong> (<span class="kbd">’s</span> o <span class="kbd">’</span>).</p>
+    <div class="row cols-2">
+      <div>
+        <label>Nombre del equipo (opcional)</label>
+        <input id="team" type="text" placeholder="Team A, The Grammarians…">
+      </div>
+      <div>
+        <label>Duración (minutos)</label>
+        <input id="mins" type="number" min="1" max="60" value="8">
+      </div>
     </div>
-    <div id="player"></div>
-    <div id="door"></div>
+    <div class="row cols-2">
+      <div>
+        <label>N.º de retos</label>
+        <input id="count" type="number" min="5" max="30" value="12">
+      </div>
+      <div>
+        <label>Dificultad</label>
+        <input id="diff" type="text" value="mixto (singular, plural, irregulares)">
+        <p class="small">Nota: el set ya incluye singulares, plurales regulares/irregulares y nombres compuestos.</p>
+      </div>
+    </div>
+    <div class="flex" style="margin-top:10px">
+      <button class="btn" id="start">Comenzar</button>
+      <button class="btn ghost" id="projector">Modo proyector</button>
+      <span class="small">Sugerencia: divide a los 24 en 4 equipos y juegan por rondas.</span>
+    </div>
   </div>
 
-  <script>
-    let score = 0;
-    let time = 300;
+  <div class="card hidden" id="game">
+    <div class="hud">
+      <div class="tag">Equipo: <strong id="hudTeam">—</strong></div>
+      <div class="tag">Reto: <strong><span id="done">0</span>/<span id="total">0</span></strong></div>
+      <div class="tag">Puntaje: <strong id="score">0</strong></div>
+      <div class="tag">Tiempo: <strong id="time">00:00</strong></div>
+      <div class="tag">Streak: <strong id="streak">0</strong></div>
+    </div>
+    <div class="bar"><span id="progress"></span></div>
 
-    function checkAnswer() {
-      const input = document.getElementById("answer").value.trim().toLowerCase();
-      if (input === "mi") {
-        score += 10;
-        alert("¡Correcto! La puerta se abre 🎉");
-      } else {
-        alert("Respuesta incorrecta ❌");
-      }
-      document.getElementById("score").innerText = `Tiempo: ${time}s | Puntos: ${score}`;
-    }
+    <div class="qbox">
+      <div class="ghost-text">Convierte de “of” → <span class="kbd">Saxon possessive</span></div>
+      <div class="prompt" id="qtext">—</div>
+    </div>
 
-    // Contador
-    setInterval(() => {
-      if (time > 0) {
-        time--;
-        document.getElementById("score").innerText = `Tiempo: ${time}s | Puntos: ${score}`;
-      }
-    }, 1000);
-  </script>
+    <div class="grid">
+      <input id="answer" type="text" placeholder="Escribe la respuesta (ej. children’s toys)">
+      <div class="flex">
+        <button class="btn" id="submit">Validar</button>
+        <button class="btn ghost" id="hint">Pista</button>
+        <button class="btn ghost" id="skip">Saltar</button>
+      </div>
+    </div>
+    <div class="feedback" id="fb"></div>
+    <p class="small">Consejo: se aceptan variantes razonables (con/sin “the”, mayúsculas, apóstrofo recto o tipográfico).</p>
+  </div>
+
+  <div class="card hidden center" id="end">
+    <h1>¡Escapaste! 🔓</h1>
+    <p class="lead">Equipo: <strong id="endTeam">—</strong> · Puntaje: <strong id="endScore">0</strong></p>
+    <div class="hud center" style="justify-content:center">
+      <div class="tag">Correctas: <strong id="endCorrect">0</strong></div>
+      <div class="tag">Saltos: <strong id="endSkips">0</strong></div>
+      <div class="tag">Tiempo usado: <strong id="endTime">—</strong></div>
+      <div class="tag">Mejor racha: <strong id="endBestStreak">0</strong></div>
+    </div>
+    <div class="bar" style="margin:10px 0 16px"><span id="endBar" style="width:0%"></span></div>
+    <div class="flex" style="justify-content:center">
+      <button class="btn" id="again">Jugar otra vez</button>
+      <button class="btn ghost" id="reveal">Ver soluciones</button>
+    </div>
+    <div id="solutions" class="hidden" style="margin-top:14px;text-align:left"></div>
+  </div>
+</div>
+
+<script>
+/* ---------- banco de retos (of → saxon possessive) ---------- */
+const RAW = [
+  ["the books of Mary", ["Mary's books","the Mary's books"]],
+  ["the tail of the cat", ["the cat's tail","cat's tail"]],
+  ["the toys of the children", ["the children's toys","children's toys"]],
+  ["the desk of the teacher", ["the teacher's desk","teacher's desk"]],
+  ["the names of my friends", ["my friends' names","the friends' names"]],
+  ["the color of the car", ["the car's color","car's color"]],
+  ["the paws of the dogs", ["the dogs' paws","dogs' paws"]],
+  ["the room of my parents", ["my parents' room","the parents' room"]],
+  ["the backpack of Alex", ["Alex's backpack","the Alex's backpack"]],
+  ["the house of my sister", ["my sister's house","the sister's house"]],
+  ["the wings of the birds", ["the birds' wings","birds' wings"]],
+  ["the uniform of the students", ["the students' uniform","students' uniform"]],
+  ["the decision of the boss", ["the boss's decision","boss's decision","the boss' decision","boss' decision"]],
+  ["the anniversary of James", ["James's anniversary","James' anniversary"]],
+  ["the cover of the book", ["the book's cover","book's cover"]],
+  ["the handle of the door", ["the door's handle","door's handle"]],
+  ["the legs of the people", ["people's legs","the people's legs"]],
+  ["the toys of the children in the park", ["the children's toys in the park","children's toys in the park"]],
+  ["the salaries of the employees", ["the employees' salaries","employees' salaries"]],
+  ["the opinion of the jury", ["the jury's opinion","jury's opinion"]],
+  ["the schedule of the teachers", ["the teachers' schedule","teachers' schedule"]],
+  ["the tail of James's dog", ["James's dog's tail","James' dog's tail"]],
+  ["the responsibilities of the nurses", ["the nurses' responsibilities","nurses' responsibilities"]],
+  ["the wheels of the buses", ["the buses' wheels","buses' wheels"]],
+  ["the shoes of the woman", ["the woman's shoes","woman's shoes"]],
+  ["the shoes of the women", ["the women's shoes","women's shoes"]],
+  ["the apartment of my grandparents", ["my grandparents' apartment","the grandparents' apartment"]],
+  ["the idea of the engineer", ["the engineer's idea","engineer's idea"]],
+  ["the rules of the game", ["the game's rules","game's rules"]],
+  ["the roof of the building", ["the building's roof","building's roof"]],
+  ["the leaves of the tree", ["the tree's leaves","tree's leaves"]],
+  ["the goals of the team", ["the team's goals","team's goals"]],
+];
+
+/* ---------- utilidades ---------- */
+const normalize = s => s
+  .toLowerCase()
+  .replaceAll("’","'")
+  .replace(/\s+/g,' ')
+  .replace(/\s*(the)\s+/g,' the ') // normaliza espacios
+  .trim();
+
+const variants = s => {
+  // genera variantes con/sin "the" inicial
+  const base = normalize(s);
+  const noThe = base.replace(/^the\s+/,'');
+  const withThe = base.startsWith('the ') ? base : 'the ' + base;
+  return Array.from(new Set([base,noThe,withThe]));
+};
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* ---------- estado ---------- */
+let pool=[], idx=0, score=0, correct=0, skips=0, streak=0, bestStreak=0, total=0;
+let tLeft=0, tHandle=null, startedAt=0;
+let answersSeen=[], projector=false;
+
+const el= id=>document.getElementById(id);
+
+/* ---------- preparar banco ---------- */
+const makePool=(n)=>{
+  const expanded = RAW.map(([q,arr])=>{
+    const accepted = new Set();
+    arr.forEach(a=>variants(a).forEach(v=>accepted.add(v)));
+    return { q, accepted:[...accepted], show: q.replace(/^the\s+/i,'')+" → ?" };
+  });
+  return shuffle(expanded).slice(0, n);
+};
+
+/* ---------- UI helpers ---------- */
+function setProgress(){
+  const pct = Math.round((idx/total)*100);
+  el('progress').style.width = pct + '%';
+  el('done').textContent = idx;
+  el('total').textContent = total;
+  el('score').textContent = score;
+  el('streak').textContent = streak;
+}
+
+function tick(){
+  tLeft--;
+  if(tLeft<0){ return endGame('Tiempo agotado ⏰'); }
+  const m = String(Math.floor(tLeft/60)).padStart(2,'0');
+  const s = String(tLeft%60).padStart(2,'0');
+  el('time').textContent = `${m}:${s}`;
+}
+
+function loadQ(){
+  const item = pool[idx];
+  el('qtext').textContent = item.show;
+  el('answer').value = '';
+  el('answer').focus();
+  el('fb').textContent = '';
+}
+
+function startTimer(seconds){
+  tLeft = seconds;
+  startedAt = Date.now();
+  clearInterval(tHandle);
+  tHandle = setInterval(tick, 1000);
+  tick();
+}
+
+/* ---------- lógica ---------- */
+function start(){
+  const team = el('team').value.trim() || '—';
+  const mins = Math.max(1, Math.min(60, parseInt(el('mins').value||8,10)));
+  const count = Math.max(5, Math.min(30, parseInt(el('count').value||12,10)));
+
+  pool = makePool(count);
+  idx=0; score=0; correct=0; skips=0; streak=0; bestStreak=0; total=pool.length; answersSeen=[];
+  el('hudTeam').textContent = team;
+
+  el('setup').classList.add('hidden');
+  el('end').classList.add('hidden');
+  el('game').classList.remove('hidden');
+
+  setProgress();
+  loadQ();
+  startTimer(mins*60);
+}
+
+function check(){
+  const user = normalize(el('answer').value);
+  if(!user){ el('fb').innerHTML = '<span class="warn">Escribe una respuesta.</span>'; return; }
+  const ok = pool[idx].accepted.includes(user);
+  if(ok){
+    correct++; streak++; bestStreak = Math.max(bestStreak,streak);
+    const bonus = 100 + Math.max(0, Math.floor(tLeft/5)); // pequeño bonus por tiempo
+    score += bonus;
+    el('fb').innerHTML = `<span class="ok">✅ ¡Correcto! +${bonus} pts</span>`;
+    idx++;
+    setProgress();
+    if(idx>=total){ return endGame('¡Todos los retos resueltos!'); }
+    setTimeout(loadQ, 300);
+  }else{
+    streak=0; score = Math.max(0, score-20);
+    el('fb').innerHTML = `<span class="bad">❌ Intenta de nuevo.</span> <span class="ghost-text">Pista: revisa el apóstrofo (<span class="kbd">'</span>) y el plural.</span>`;
+    setProgress();
+  }
+}
+
+function giveHint(){
+  const acc = pool[idx].accepted[0];
+  const hint = acc.replace(/.[^ ]/g, (m,i)=> i<3 ? m : '_'); // deja visibles ~3 caracteres
+  el('fb').innerHTML = `<span class="warn">Pista:</span> <span class="kbd">${hint}</span> <span class="small">(−15 pts)</span>`;
+  score = Math.max(0, score-15);
+  setProgress();
+}
+
+function skip(){
+  skips++;
+  streak=0;
+  answersSeen.push({q: pool[idx].q, a: pool[idx].accepted[0]});
+  idx++;
+  setProgress();
+  if(idx>=total){ return endGame('Fin de la ronda'); }
+  loadQ();
+}
+
+function endGame(reason){
+  clearInterval(tHandle);
+  el('game').classList.add('hidden');
+  el('end').classList.remove('hidden');
+  const used = Math.max(0, Math.floor((Date.now()-startedAt)/1000));
+  const mm = String(Math.floor(used/60)).padStart(2,'0');
+  const ss = String(used%60).padStart(2,'0');
+  el('endTeam').textContent = el('hudTeam').textContent;
+  el('endScore').textContent = score;
+  el('endCorrect').textContent = correct;
+  el('endSkips').textContent = skips;
+  el('endTime').textContent = `${mm}:${ss}`;
+  el('endBestStreak').textContent = bestStreak;
+  el('endBar').style.width = `${Math.round((correct/total)*100)}%`;
+
+  // guardar soluciones
+  const all = [...answersSeen];
+  for(let i=idx;i<total;i++){ all.push({q: pool[i].q, a: pool[i].accepted[0]}); }
+  el('solutions').dataset.data = JSON.stringify(all);
+}
+
+function revealSolutions(){
+  const data = JSON.parse(el('solutions').dataset.data||'[]');
+  if(!data.length){ el('solutions').innerHTML = '<p class="small">Sin ítems pendientes. 👌</p>'; }
+  else{
+    el('solutions').innerHTML = '<h3>Soluciones / pendientes</h3>' +
+      '<ol>' + data.map(it=>`<li><span class="small">${it.q}</span> → <strong>${it.a}</strong></li>`).join('') + '</ol>';
+  }
+  el('solutions').classList.toggle('hidden');
+}
+
+function toggleProjector(){
+  projector = !projector;
+  document.documentElement.style.setProperty('--accent', projector ? '#a78bfa' : '#22d3ee');
+}
+
+/* ---------- eventos ---------- */
+document.addEventListener('DOMContentLoaded', ()=>{
+  el('start').addEventListener('click', start);
+  el('submit').addEventListener('click', check);
+  el('hint').addEventListener('click', giveHint);
+  el('skip').addEventListener('click', skip);
+  el('again').addEventListener('click', ()=>{ el('end').classList.add('hidden'); el('setup').classList.remove('hidden'); });
+  el('reveal').addEventListener('click', revealSolutions);
+  el('projector').addEventListener('click', toggleProjector);
+  el('answer').addEventListener('keydown', (e)=>{ if(e.key==='Enter') check(); });
+});
+</script>
 </body>
 </html>
